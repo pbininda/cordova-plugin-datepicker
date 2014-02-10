@@ -22,6 +22,7 @@ function DatePicker() {
 		var defaults = {
 			mode : '',
 			date : '',
+			interval: 1,
 			minDate: 0,
 			maxDate: 0
 		};

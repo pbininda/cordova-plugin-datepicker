@@ -1,9 +1,3 @@
-/**
- * @author Bikas Vaibhav (http://bikasv.com) 2013
- * Rewrote the plug-in at https://github.com/phonegap/phonegap-plugins/tree/master/Android/DatePicker
- * It can now accept `min` and `max` dates for DatePicker.
- */
-
 package com.plugin.datepicker;
 
 import java.util.Calendar;
@@ -27,7 +21,6 @@ import android.widget.DatePicker;
 import android.widget.DatePicker.OnDateChangedListener;
 import android.widget.TimePicker;
 
-import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaPlugin;
 
@@ -62,9 +55,12 @@ public class DatePickerPlugin extends CordovaPlugin {
 		long minDateLong = 0, maxDateLong = 0;
 
 		int month = -1, day = -1, year = -1, hour = -1, min = -1;
+		int interval = 1;
 		try {
 			JSONObject obj = data.getJSONObject(0);
 			action = obj.getString("mode");
+
+            interval = obj.getInt("interval");
 
 			String optionDate = obj.getString("date");
 
@@ -91,14 +87,15 @@ public class DatePickerPlugin extends CordovaPlugin {
 
 		final long minDate = minDateLong;
 		final long maxDate = maxDateLong;
+		final int mInterval = interval;
 
 		if (ACTION_TIME.equalsIgnoreCase(action)) {
 			runnable = new Runnable() {
 				@Override
 				public void run() {
 					final TimeSetListener timeSetListener = new TimeSetListener(datePickerPlugin, callbackContext);
-					final TimePickerDialog timeDialog = new TimePickerDialog(currentCtx, timeSetListener, mHour,
-							mMinutes, true);
+					final TimePickerDialog timeDialog = new CustomTimeIntervalDialog(currentCtx, timeSetListener, mHour,
+							mMinutes, true, mInterval);
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
 						timeDialog.setCancelable(true);
 						timeDialog.setCanceledOnTouchOutside(false);
@@ -134,11 +131,11 @@ public class DatePickerPlugin extends CordovaPlugin {
 						dateDialog.setCancelable(true);
 						dateDialog.setCanceledOnTouchOutside(false);
 						dateDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-				            @Override
-				            public void onClick(DialogInterface dialog, int which) {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
 								callbackContext.success("cancel");
-				            }
-				        });
+							}
+						});
 						dateDialog.setOnKeyListener(new Dialog.OnKeyListener() {
 							@Override
 							public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
@@ -172,28 +169,28 @@ public class DatePickerPlugin extends CordovaPlugin {
 						endDate.setTimeInMillis(maxDate);
 
 						final int minYear = startDate.get(Calendar.YEAR);
-					    final int minMonth = startDate.get(Calendar.MONTH);
-					    final int minDay = startDate.get(Calendar.DAY_OF_MONTH);
-					    final int maxYear = endDate.get(Calendar.YEAR);
-					    final int maxMonth = endDate.get(Calendar.MONTH);
-					    final int maxDay = endDate.get(Calendar.DAY_OF_MONTH);
+						final int minMonth = startDate.get(Calendar.MONTH);
+						final int minDay = startDate.get(Calendar.DAY_OF_MONTH);
+						final int maxYear = endDate.get(Calendar.YEAR);
+						final int maxMonth = endDate.get(Calendar.MONTH);
+						final int maxDay = endDate.get(Calendar.DAY_OF_MONTH);
 
 						if(startDate !=null || endDate != null) {
 							pickerView.init(mYear, mMonth, mDay, new OnDateChangedListener() {
-				                @Override
+								@Override
 								public void onDateChanged(DatePicker view, int year, int month, int day) {
-				                	if(maxDate > 0 && maxDate > minDate) {
-					                	if(year > maxYear || month > maxMonth && year == maxYear || day > maxDay && year == maxYear && month == maxMonth){
-					                		view.updateDate(maxYear, maxMonth, maxDay);
-					                	}
-				                	}
-				                	if(minDate > 0) {
-					                	if(year < minYear || month < minMonth && year == minYear || day < minDay && year == minYear && month == minMonth) {
-					                		view.updateDate(minYear, minMonth, minDay);
-					                	}
-				                	}
-			                	}
-				            });
+									if(maxDate > 0 && maxDate > minDate) {
+										if(year > maxYear || month > maxMonth && year == maxYear || day > maxDay && year == maxYear && month == maxMonth){
+											view.updateDate(maxYear, maxMonth, maxDay);
+										}
+									}
+									if(minDate > 0) {
+										if(year < minYear || month < minMonth && year == minYear || day < minDay && year == minYear && month == minMonth) {
+											view.updateDate(minYear, minMonth, minDay);
+										}
+									}
+								}
+							});
 						}
 					}
 					dateDialog.show();
